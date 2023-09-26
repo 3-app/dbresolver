@@ -19,6 +19,7 @@ type DBResolver struct {
 	global           *resolver
 	prepareStmtStore map[gorm.ConnPool]*gorm.PreparedStmtDB
 	compileCallbacks []func(gorm.ConnPool) error
+	dbs              []*gorm.DB
 }
 
 type Config struct {
@@ -71,6 +72,15 @@ func (dr *DBResolver) compile() error {
 		}
 	}
 	return nil
+}
+func (dr *DBResolver) Reset() {
+	for _, r := range dr.dbs {
+		db, _ := r.DB()
+		_ = db.Close()
+	}
+	dr.configs = nil
+	dr.resolvers = nil
+	dr.prepareStmtStore = nil
 }
 
 func (dr *DBResolver) compileConfig(config Config) (err error) {
@@ -146,7 +156,7 @@ func (dr *DBResolver) convertToConnPool(dialectors []gorm.Dialector) (connPools 
 				Mux:         &sync.RWMutex{},
 				PreparedSQL: make([]string, 0, 100),
 			}
-
+			dr.dbs = append(dr.dbs, db)
 			connPools = append(connPools, connPool)
 		} else {
 			return nil, err
