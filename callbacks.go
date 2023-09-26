@@ -6,6 +6,15 @@ import (
 	"gorm.io/gorm"
 )
 
+func (dr *DBResolver) removeCallbacks() {
+	dr.Callback().Create().Before("*").Remove("gorm:db_resolver")
+	dr.Callback().Query().Before("*").Remove("gorm:db_resolver")
+	dr.Callback().Update().Before("*").Remove("gorm:db_resolver")
+	dr.Callback().Delete().Before("*").Remove("gorm:db_resolver")
+	dr.Callback().Row().Before("*").Remove("gorm:db_resolver")
+	dr.Callback().Raw().Before("*").Remove("gorm:db_resolver")
+}
+
 func (dr *DBResolver) registerCallbacks(db *gorm.DB) {
 	dr.Callback().Create().Before("*").Register("gorm:db_resolver", dr.switchSource)
 	dr.Callback().Query().Before("*").Register("gorm:db_resolver", dr.switchReplica)

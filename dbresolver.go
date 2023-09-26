@@ -82,6 +82,7 @@ func (dr *DBResolver) Reset() {
 		_ = db.Close()
 		r = nil
 	}
+	dr.removeCallbacks()
 	dr.configs = nil
 	dr.resolvers = nil
 	dr.prepareStmtStore = nil
