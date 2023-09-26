@@ -20,6 +20,7 @@ type DBResolver struct {
 	prepareStmtStore map[gorm.ConnPool]*gorm.PreparedStmtDB
 	compileCallbacks []func(gorm.ConnPool) error
 	dbs              []*gorm.DB
+	mutex            sync.Mutex
 }
 
 type Config struct {
@@ -74,13 +75,17 @@ func (dr *DBResolver) compile() error {
 	return nil
 }
 func (dr *DBResolver) Reset() {
+	defer dr.mutex.Unlock()
+	dr.mutex.Lock()
 	for _, r := range dr.dbs {
 		db, _ := r.DB()
 		_ = db.Close()
+		r = nil
 	}
 	dr.configs = nil
 	dr.resolvers = nil
 	dr.prepareStmtStore = nil
+	dr.dbs = nil
 }
 
 func (dr *DBResolver) compileConfig(config Config) (err error) {
